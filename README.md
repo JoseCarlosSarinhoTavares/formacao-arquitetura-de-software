@@ -8,8 +8,8 @@ A formação aborda diferentes áreas da arquitetura e da engenharia de software
 
 ## Módulos
 
-| Nº | Módulo | Pasta
-|---:|---|---|---|
+| Nº | Módulo | Pasta |
+|---:|---|---|
 | 01 | Automação de Testes | `01-automacao-de-testes` |
 | 02 | Refactoring | `02-refactoring` |
 | 03 | Arquitetura Hexagonal, Ports and Adapters | `03-arquitetura-hexagonal` |
