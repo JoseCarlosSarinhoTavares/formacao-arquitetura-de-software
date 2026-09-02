@@ -1,0 +1,21 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+build/
+
+# Testes
+coverage/
+test-results/
+playwright-report/
+
+# Ambiente
+.env
+.env.*
+
+# VS Code
+.vscode/settings.json
+
+# Logs
+*.log
