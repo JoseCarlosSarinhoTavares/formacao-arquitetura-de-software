@@ -42,5 +42,6 @@ A formação aborda diferentes áreas da arquitetura e da engenharia de software
 formacao-arquitetura-de-software/
 ├── 01-automacao-de-testes/
 ├── 02-refactoring/
+├── 03-hexagonal/
 ├── .gitignore
 └── README.md
