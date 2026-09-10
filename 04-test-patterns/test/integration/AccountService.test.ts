@@ -201,3 +201,168 @@ test("Deve fazer um depósito em uma conta com fake", async (t) => {
     expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
     expect(outputGetAccount.balances[0]?.quantity).toBe(100);
 });
+
+test("Deve fazer um saque em uma conta com fake", async (t) => {
+    const accountDAO = new AccountDAOFake();
+    const balanceDAO = new BalanceDAOFake();
+    const paymentGateway = new PaymentGatewayFake();
+    const accountService = new AccountService(accountDAO, balanceDAO, paymentGateway);
+    const inputSignup = {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        document: "974.563.215-58",
+        password: "Password123"
+    };
+    const outputSignup = await accountService.Signup(inputSignup);
+    const inputDeposit = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 100,
+        creditCardHolder: "John Doe",
+        creditCardNumber: "4111111111111111",
+        creditCardExpiration: "12/2027",
+        creditCardCvv: "123"
+    };
+    await accountService.Deposit(inputDeposit);
+    const inputWithdraw = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 40
+    };
+    await accountService.Withdraw(inputWithdraw);
+    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
+    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
+    expect(outputGetAccount.balances[0]?.quantity).toBe(60);
+});
+
+test("Não deve fazer um saque acima do saldo em uma conta com fake", async (t) => {
+    const accountDAO = new AccountDAOFake();
+    const balanceDAO = new BalanceDAOFake();
+    const paymentGateway = new PaymentGatewayFake();
+    const accountService = new AccountService(accountDAO, balanceDAO, paymentGateway);
+    const inputSignup = {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        document: "974.563.215-58",
+        password: "Password123"
+    };
+    const outputSignup = await accountService.Signup(inputSignup);
+    const inputDeposit = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 100,
+        creditCardHolder: "John Doe",
+        creditCardNumber: "4111111111111111",
+        creditCardExpiration: "12/2027",
+        creditCardCvv: "123"
+    };
+    await accountService.Deposit(inputDeposit);
+    const inputWithdraw = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 140
+    };
+    await accountService.Withdraw(inputWithdraw);
+    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
+    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
+    expect(outputGetAccount.balances[0]?.quantity).toBe(100);
+});
+
+test("Deve colocar uma ordem em uma conta com fake", async (t) => {
+    const accountDAO = new AccountDAOFake();
+    const balanceDAO = new BalanceDAOFake();
+    const paymentGateway = new PaymentGatewayFake();
+    const accountService = new AccountService(accountDAO, balanceDAO, paymentGateway);
+    const inputSignup = {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        document: "974.563.215-58",
+        password: "Password123"
+    };
+    const outputSignup = await accountService.Signup(inputSignup);
+    const inputDeposit = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 100,
+        creditCardHolder: "John Doe",
+        creditCardNumber: "4111111111111111",
+        creditCardExpiration: "12/2027",
+        creditCardCvv: "123"
+    };
+    await accountService.Deposit(inputDeposit);
+    const inputPlaceOrder = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 30
+    };
+    await accountService.PlaceOrder(inputPlaceOrder);
+    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
+    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
+    expect(outputGetAccount.balances[0]?.quantity).toBe(70);
+});
+
+test("Não deve colocar uma ordem acima do saldo em uma conta com fake", async (t) => {
+    const accountDAO = new AccountDAOFake();
+    const balanceDAO = new BalanceDAOFake();
+    const paymentGateway = new PaymentGatewayFake();
+    const accountService = new AccountService(accountDAO, balanceDAO, paymentGateway);
+    const inputSignup = {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        document: "974.563.215-58",
+        password: "Password123"
+    };
+    const outputSignup = await accountService.Signup(inputSignup);
+    const inputDeposit = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 100,
+        creditCardHolder: "John Doe",
+        creditCardNumber: "4111111111111111",
+        creditCardExpiration: "12/2027",
+        creditCardCvv: "123"
+    };
+    await accountService.Deposit(inputDeposit);
+    const inputPlaceOrder = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 130
+    };
+    await accountService.PlaceOrder(inputPlaceOrder);
+    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
+    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
+    expect(outputGetAccount.balances[0]?.quantity).toBe(100);
+});
+
+test("Deve executar uma ordem em uma conta com fake", async (t) => {
+    const accountDAO = new AccountDAOFake();
+    const balanceDAO = new BalanceDAOFake();
+    const paymentGateway = new PaymentGatewayFake();
+    const accountService = new AccountService(accountDAO, balanceDAO, paymentGateway);
+    const inputSignup = {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        document: "974.563.215-58",
+        password: "Password123"
+    };
+    const outputSignup = await accountService.Signup(inputSignup);
+    const inputDeposit = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 100,
+        creditCardHolder: "John Doe",
+        creditCardNumber: "4111111111111111",
+        creditCardExpiration: "12/2027",
+        creditCardCvv: "123"
+    };
+    await accountService.Deposit(inputDeposit);
+    const inputExecuteOrder = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 50
+    };
+    await accountService.ExecuteOrder(inputExecuteOrder);
+    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
+    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
+    expect(outputGetAccount.balances[0]?.quantity).toBe(150);
+});

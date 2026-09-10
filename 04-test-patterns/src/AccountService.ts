@@ -9,6 +9,9 @@ export default interface IAccountService{
     Signup(input: SignupInput): Promise<SignupOutput>;
     GetAccount(accountId: string): Promise<GetAccountOutput>;
     Deposit(input: DepositInput): Promise<void>;
+    Withdraw(input: WithdrawInput): Promise<void>;
+    PlaceOrder(input: PlaceOrderInput): Promise<void>;
+    ExecuteOrder(input: ExecuteOrderInput): Promise<void>;
 }
 
 export class AccountService {
@@ -90,6 +93,55 @@ export class AccountService {
             }
         }
     }
+
+    async Withdraw(input: WithdrawInput): Promise<void> {
+        const account = await this.accountDAO.GetById(input.accountId);
+        if (account) {
+            const balances = await this.balanceDAO.ListByAccountId(input.accountId);
+            const existingBalance = balances.find(balance => balance.assetId === input.assetId);
+            const existingQuantity = (existingBalance) ? existingBalance.quantity : 0;
+            if (existingQuantity >= input.quantity) {
+                const balance = {
+                    accountId: input.accountId,
+                    assetId: input.assetId,
+                    quantity: existingQuantity - input.quantity
+                };
+                await this.balanceDAO.Upsert(balance);
+            }
+        }
+    }
+
+    async PlaceOrder(input: PlaceOrderInput): Promise<void> {
+        const account = await this.accountDAO.GetById(input.accountId);
+        if (account) {
+            const balances = await this.balanceDAO.ListByAccountId(input.accountId);
+            const existingBalance = balances.find(balance => balance.assetId === input.assetId);
+            const existingQuantity = (existingBalance) ? existingBalance.quantity : 0;
+            if (existingQuantity >= input.quantity) {
+                const balance = {
+                    accountId: input.accountId,
+                    assetId: input.assetId,
+                    quantity: existingQuantity - input.quantity
+                };
+                await this.balanceDAO.Upsert(balance);
+            }
+        }
+    }
+
+    async ExecuteOrder(input: ExecuteOrderInput): Promise<void> {
+        const account = await this.accountDAO.GetById(input.accountId);
+        if (account) {
+            const balances = await this.balanceDAO.ListByAccountId(input.accountId);
+            const existingBalance = balances.find(balance => balance.assetId === input.assetId);
+            const existingQuantity = (existingBalance) ? existingBalance.quantity : 0;
+            const balance = {
+                accountId: input.accountId,
+                assetId: input.assetId,
+                quantity: existingQuantity + input.quantity
+            };
+            await this.balanceDAO.Upsert(balance);
+        }
+    }
 }
 
 export class AccountServiceFake implements IAccountService {
@@ -110,8 +162,13 @@ export class AccountServiceFake implements IAccountService {
         };
     }
 
-    async Deposit(input: DepositInput): Promise<void> {
-    }
+    async Deposit(input: DepositInput): Promise<void> { }
+
+    async Withdraw(input: WithdrawInput): Promise<void> { }
+
+    async PlaceOrder(input: PlaceOrderInput): Promise<void> { }
+
+    async ExecuteOrder(input: ExecuteOrderInput): Promise<void> { }
 }
 
 type SignupInput = {
@@ -125,16 +182,6 @@ type SignupOutput = {
     accountId: string;
 }
 
-type DepositInput = {
-    accountId: string;
-    assetId: string;
-    quantity: number;
-    creditCardHolder: string;
-    creditCardNumber: string;
-    creditCardExpiration: string;
-    creditCardCvv: string;
-}
-
 type GetAccountOutput = {
     accountId: string;
     name: string;
@@ -145,4 +192,31 @@ type GetAccountOutput = {
         assetId: string;
         quantity: number;
     }[];
+}
+
+type DepositInput = {
+    accountId: string;
+    assetId: string;
+    quantity: number;
+    creditCardHolder: string;
+    creditCardNumber: string;
+    creditCardExpiration: string;
+    creditCardCvv: string;
+}
+
+type WithdrawInput = {
+    accountId: string;
+    assetId: string;
+    quantity: number;
+}
+type PlaceOrderInput = {
+    accountId: string;
+    assetId: string;
+    quantity: number;
+}
+
+type ExecuteOrderInput = {
+    accountId: string;
+    assetId: string;
+    quantity: number;
 }
