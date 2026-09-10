@@ -1,9 +1,9 @@
 import { test, expect } from "vitest";
-import { validateName } from "../../src/validateName.ts";
+import { ValidateName } from "../../src/ValidateName.ts";
 
 test("Deve validar o nome", () => {
   const name = "John Doe";
-  const isValid = validateName(name);
+  const isValid = ValidateName(name);
   expect(isValid).toBe(true);
 });
 
@@ -12,6 +12,6 @@ test.each([
   undefined,
   null
 ])("Não deve validar o nome: %s", (name: any) => {
-  const isValid = validateName(name);
+  const isValid = ValidateName(name);
   expect(isValid).toBe(false);
 });

@@ -1,15 +1,14 @@
 // Driven Adapter
 
 import pgp from "pg-promise";
-import type { IAccountServiceAccountData } from "./AccountService.ts";
 
-export default interface IAccountData extends IAccountServiceAccountData {
+export default interface IAccountDAO {
     Save (account: Account): Promise<void>;
     GetById (accountId: string): Promise<Account>;
     List (): Promise<Account[]>;
 }
 
-export default class AccountData implements IAccountData {
+export default class AccountDAO implements IAccountDAO {
     async Save(account: Account): Promise<void> {
         const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
         await connection.query("insert into app.account (account_id, name, email, document, password) values ($1, $2, $3, $4, $5)", 
@@ -51,7 +50,7 @@ export default class AccountData implements IAccountData {
     }
 }
 
-export class AccountDataFake implements IAccountData {
+export class AccountDAOFake implements IAccountDAO {
     accounts: Account[] = [];
     async Save(account: Account): Promise<void>{
         this.accounts.push(account);

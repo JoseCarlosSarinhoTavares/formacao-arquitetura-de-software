@@ -1,42 +1,31 @@
 import crypto from "crypto";
-import { validateCpf } from "./validateCpf.ts";
-import { validateName } from "./validateName.ts";
-import BalanceData from "./BalanceData.ts";
-import PaymentGateway from "./PaymentGateway.ts";
+import { BalanceDAO } from "./BalanceDAO.ts";
+import type IAccountDAO from "./AccountDAO.ts";
+import type PaymentGateway from "./PaymentGateway.ts";
+import { ValidateName } from "./validateName.ts";
+import { ValidateCpf } from "./validateCpf.ts";
 
-// Driver Port
 export default interface IAccountService{
     Signup(input: SignupInput): Promise<SignupOutput>;
     GetAccount(accountId: string): Promise<GetAccountOutput>;
     Deposit(input: DepositInput): Promise<void>;
 }
 
-// Driven Port
-export interface IAccountServiceAccountData {
-    Save (account: Account): Promise<void>;
-    GetById (accountId: string): Promise<Account>;
-}
-
-type Account = {
-    accountId: string,
-    name: string,
-    email: string,
-    document: string,
-    password: string
-}
-
-// Core
 export class AccountService {
-    constructor(readonly accountData: IAccountServiceAccountData) { }
+    constructor(
+        readonly accountDAO: IAccountDAO, 
+        readonly balanceDAO: BalanceDAO, 
+        readonly paymentGateway: PaymentGateway
+    ) { }
 
     async Signup(input: SignupInput): Promise<SignupOutput> {  
-        if (!validateName(input.name)) {
+        if (!ValidateName(input.name)) {
             throw new Error("Invalid name");
         }
         if (!input.email.match(/.+@.+\..+/)) {
             throw new Error("Invalid email");
         }
-        if (!validateCpf(input.document)) {
+        if (!ValidateCpf(input.document)) {
             throw new Error("Invalid document");
         }
         if (
@@ -54,16 +43,15 @@ export class AccountService {
             document: input.document,
             password: input.password
         }
-        await this.accountData.Save(account);
+        await this.accountDAO.Save(account);
         return {
             accountId: account.accountId
         };
     }
 
     async GetAccount(accountId: string): Promise<GetAccountOutput> {
-        const account = await this.accountData.GetById(accountId);
-        const balanceData = new BalanceData();
-        const balances = await balanceData.ListByAccountId(accountId);
+        const account = await this.accountDAO.GetById(accountId);
+        const balances = await this.balanceDAO.ListByAccountId(accountId);
         const output = {
             accountId: account.accountId,
             name: account.name,
@@ -79,9 +67,8 @@ export class AccountService {
     }
 
     async Deposit(input: DepositInput): Promise<void> {
-        const account = await this.accountData.GetById(input.accountId);
+        const account = await this.accountDAO.GetById(input.accountId);
         if (account) {
-            const paymentGateway = new PaymentGateway();
             const inputProcessTransaction = {
                 creditCardHolder: input.creditCardHolder,
                 creditCardNumber: input.creditCardNumber,
@@ -89,10 +76,9 @@ export class AccountService {
                 creditCardCvv: input.creditCardCvv,
                 amount: input.quantity
             };
-            const outputProcessTransaction = await paymentGateway.processTransaction(inputProcessTransaction);
+            const outputProcessTransaction = await this.paymentGateway.ProcessTransaction(inputProcessTransaction);
             if (outputProcessTransaction.autorizada === "1") {
-                const balanceData = new BalanceData();
-                const balances = await balanceData.ListByAccountId(input.accountId);
+                const balances = await this.balanceDAO.ListByAccountId(input.accountId);
                 const existingBalance = balances.find(balance => balance.assetId === input.assetId);
                 const existingQuantity = (existingBalance) ? existingBalance.quantity : 0;
                 const balance = {
@@ -100,7 +86,7 @@ export class AccountService {
                     assetId: input.assetId,
                     quantity: existingQuantity + input.quantity
                 };
-                await balanceData.upsert(balance);
+                await this.balanceDAO.Upsert(balance);
             }
         }
     }

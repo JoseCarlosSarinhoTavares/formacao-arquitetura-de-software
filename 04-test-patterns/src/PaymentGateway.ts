@@ -1,7 +1,11 @@
 import axios from "axios";
 
-export default class PaymentGateway {
-    async processTransaction (input: Input): Promise<any> {
+export default interface IPaymentGateway {
+    ProcessTransaction(input: Input): Promise<any>;
+}
+
+export class PaymentGatewayHttp implements IPaymentGateway {
+    async ProcessTransaction (input: Input): Promise<any> {
         const [month, year] = input.creditCardExpDate.split("/");
         const creditCard = {
 			nome_cartao: input.creditCardHolder,
@@ -42,6 +46,14 @@ export default class PaymentGateway {
         const outputCreateTransaction = responseCreateTransaction.data;
         // console.log(outputCreateTransaction);
         return outputCreateTransaction;
+    }
+}
+
+export class PaymentGatewayFake implements IPaymentGateway {
+    async ProcessTransaction(input: Input): Promise<any> {
+        return {
+            autorizada: "1"
+        };
     }
 }
 

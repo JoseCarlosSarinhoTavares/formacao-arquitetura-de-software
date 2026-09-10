@@ -1,12 +1,12 @@
 import { test, expect } from "vitest";
-import { validateCpf } from "../../src/validateCpf.ts";
+import { ValidateCpf } from "../../src/ValidateCpf.ts";
 
 test.each([
   "974.563.215-58",
   "71428793860",
   "87748248800"
 ])("Deve verificar um CPF válido: %s", (cpf: string) => {
-  const isValid = validateCpf(cpf);
+  const isValid = ValidateCpf(cpf);
   expect(isValid).toBe(true);
 });
 
@@ -17,6 +17,6 @@ test.each([
   undefined,
   "974563215581000000000"
 ])("Deve verificar um CPF inválido: %s", (cpf: any) => {
-  const isValid = validateCpf(cpf);
+  const isValid = ValidateCpf(cpf);
   expect(isValid).toBe(false);
 });
