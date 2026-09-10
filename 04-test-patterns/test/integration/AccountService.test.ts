@@ -24,6 +24,32 @@ test("Deve criar uma conta", async (t) => {
     expect(outputGetAccount.password).toBe(input.password);
 });
 
+test("Deve fazer dois depósitos do mesmo tipo de recursoem uma conta", async (t) => {
+    const accountData = new AccountData();
+    const accountService = new AccountService(accountData);
+    const inputSignup = {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        document: "974.563.215-58",
+        password: "Password123"
+    };
+    const outputSignup = await accountService.Signup(inputSignup);
+    const inputDeposit = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 100,
+        creditCardHolder: "John Doe",
+        creditCardNumber: "4111111111111111",
+        creditCardExpiration: "12/2027",
+        creditCardCvv: "123"
+    };
+    await accountService.Deposit(inputDeposit);
+    await accountService.Deposit(inputDeposit);
+    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
+    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
+    expect(outputGetAccount.balances[0]?.quantity).toBe(200);
+});
+
 test("Deve fazer um depósito em uma conta com stub", async (t) => {
     const accountData = new AccountData();
     const accountService = new AccountService(accountData);
@@ -59,33 +85,7 @@ test("Deve fazer um depósito em uma conta com stub", async (t) => {
     listByAccountIdStub.restore();
 });
 
-test("Deve fazer dois depósitos do mesmo tipo de recursoem uma conta", async (t) => {
-    const accountData = new AccountData();
-    const accountService = new AccountService(accountData);
-    const inputSignup = {
-        name: "John Doe",
-        email: "john.doe@example.com",
-        document: "974.563.215-58",
-        password: "Password123"
-    };
-    const outputSignup = await accountService.Signup(inputSignup);
-    const inputDeposit = {
-        accountId: outputSignup.accountId,
-        assetId: "USD",
-        quantity: 100,
-        creditCardHolder: "John Doe",
-        creditCardNumber: "4111111111111111",
-        creditCardExpiration: "12/2027",
-        creditCardCvv: "123"
-    };
-    await accountService.Deposit(inputDeposit);
-    await accountService.Deposit(inputDeposit);
-    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
-    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
-    expect(outputGetAccount.balances[0]?.quantity).toBe(200);
-});
-
-test.only("Deve fazer um depósito em uma conta com spy", async (t) => {
+test("Deve fazer um depósito em uma conta com spy", async (t) => {
     const accountData = new AccountData();
     const accountService = new AccountService(accountData);
     const processTransactionSpy = sinon.spy(PaymentGateway.prototype, "processTransaction");
@@ -118,4 +118,50 @@ test.only("Deve fazer um depósito em uma conta com spy", async (t) => {
         amount: inputDeposit.quantity
     })).toBe(true);
     processTransactionSpy.restore();
+});
+
+test.only("Deve fazer um depósito em uma conta com mock", async (t) => {
+    const accountData = new AccountData();
+    const accountService = new AccountService(accountData);
+    const balanceDataMock = sinon.mock(BalanceData.prototype);
+    const paymentGatewayMock = sinon.mock(PaymentGateway.prototype);
+    const inputSignup = {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        document: "974.563.215-58",
+        password: "Password123"
+    };
+    const outputSignup = await accountService.Signup(inputSignup);
+    const inputDeposit = {
+        accountId: outputSignup.accountId,
+        assetId: "USD",
+        quantity: 100,
+        creditCardHolder: "John Doe",
+        creditCardNumber: "4111111111111111",
+        creditCardExpiration: "12/2027",
+        creditCardCvv: "123"
+    };
+    balanceDataMock.expects("upsert").once().resolves();
+    balanceDataMock.expects("ListByAccountId").twice().resolves([
+        {
+            accountId: "",
+            assetId: "USD",
+            quantity: 100
+        }
+    ]);
+    paymentGatewayMock.expects("processTransaction").once().withArgs({
+        creditCardHolder: inputDeposit.creditCardHolder,
+        creditCardNumber: inputDeposit.creditCardNumber,
+        creditCardExpDate: inputDeposit.creditCardExpiration,
+        creditCardCvv: inputDeposit.creditCardCvv,
+        amount: inputDeposit.quantity
+    }).resolves({ autorizada: "1" });
+    await accountService.Deposit(inputDeposit);
+    const outputGetAccount = await accountService.GetAccount(outputSignup.accountId);
+    expect(outputGetAccount.balances[0]?.assetId).toBe("USD");
+    expect(outputGetAccount.balances[0]?.quantity).toBe(100);
+    balanceDataMock.verify();
+    balanceDataMock.restore();
+    paymentGatewayMock.verify();
+    paymentGatewayMock.restore();
 });
