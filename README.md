@@ -43,5 +43,6 @@ formacao-arquitetura-de-software/
 ├── 01-automacao-de-testes/
 ├── 02-refactoring/
 ├── 03-hexagonal/
+├── 04-test-patterns/
 ├── .gitignore
 └── README.md
