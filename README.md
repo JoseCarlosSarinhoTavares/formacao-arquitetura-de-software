@@ -44,5 +44,6 @@ formacao-arquitetura-de-software/
 ├── 02-refactoring/
 ├── 03-hexagonal/
 ├── 04-test-patterns/
+├── 05-clean-architecture/
 ├── .gitignore
 └── README.md
