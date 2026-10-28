@@ -1,11 +1,23 @@
 // Driven Adapter
 
-import express, { type Request, type Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
-import type IAccountService from "./AccountService.ts";
+import type { Signup } from "./Signup.ts";
+import type { GetAccount } from "./GetAccount.ts";
+import type { Deposit } from "./Deposit.ts";
+import type { PlaceOrder } from "./PlaceOrder.ts";
+import type { GetOrder } from "./GetOrder.ts";
 
 export default class Api {
-    constructor(readonly accountService: IAccountService) { 
+    readonly app: Express;
+
+    constructor(
+        readonly signup: Signup, 
+        readonly getAccount: GetAccount, 
+        readonly deposit: Deposit,
+        readonly placeOrder: PlaceOrder,
+        readonly getOrder: GetOrder,
+    ) { 
         const app = express();
         app.use(express.json());
         app.use(cors());
@@ -13,7 +25,7 @@ export default class Api {
         app.post("/signup", async (req: Request, res: Response) => {
             const input = req.body;
             try {
-                const output = await accountService.Signup(input);
+                const output = await this.signup.Execute(input);
                 res.json({
                     accountId: output.accountId
                 });
@@ -24,12 +36,32 @@ export default class Api {
             }
         });
 
+        app.post("/place_order", async (req: Request, res: Response) => {
+            const input = req.body;
+            try {
+                const output = await this.placeOrder.Execute(input);
+                res.json({
+                    orderId: output.orderId
+                });
+            } catch (e: any) {
+                res.json({
+                    error: e.message
+                });
+            }
+        });
+
         app.get("/accounts/:accountId", async (req: Request, res: Response) => {
             const accountId = req.params.accountId as string;
-            const output = await accountService.GetAccount(accountId);
+            const output = await this.getAccount.Execute(accountId);
             res.json(output);
         });
 
-        app.listen(3000);
+        app.get("/orders/:orderId", async (req: Request, res: Response) => {
+            const orderId = req.params.orderId as string;
+            const output = await this.getOrder.Execute(orderId);
+            res.json(output);
+        });
+
+        this.app = app;
     }
 }

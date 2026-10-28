@@ -61,3 +61,17 @@ test("Deve fazer dois depósitos em uma conta", () => {
     account.Deposit("USD", 100);
     expect(account.GetBalances("USD")).toBe(200);
 });
+
+test("Deve fazer um saque na conta", () => {
+    const account = Account.Create("John Doe", "john.doe@example.com", "71428793860", "asdQWE123");
+    account.Deposit("USD", 100);
+    account.Deposit("USD", 100);
+    account.Withdraw("USD", 100);
+    expect(account.GetBalances("USD")).toBe(100);
+});
+
+test("Não deve fazer um saque de conta com saldo insuficiente", () => {
+    const account = Account.Create("John Doe", "john.doe@example.com", "71428793860", "asdQWE123");
+    account.Deposit("USD", 500);
+    expect(() => account.Withdraw("USD", 1000)).toThrow(new Error("Insufficient balance"));
+});

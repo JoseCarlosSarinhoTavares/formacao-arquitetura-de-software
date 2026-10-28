@@ -26,6 +26,14 @@ export default class Account {
         }
     }
 
+    Withdraw(assetId: string, quantity: number) {
+        const balance = this.balances.find((balance) => balance?.assetId === assetId);
+        if (!balance || balance.quantity < quantity) {
+            throw new Error("Insufficient balance");
+        }
+        balance.quantity -= quantity;
+    }
+
     GetBalances(assetId: string): number {
         const balance = this.balances.find(b => b.assetId === assetId);
         return balance ? balance.quantity : 0;

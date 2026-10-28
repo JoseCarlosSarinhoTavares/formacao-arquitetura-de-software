@@ -34,6 +34,7 @@ export default class AccountRepository implements IAccountRepository {
     async GetById(accountId: string): Promise<Account> {
         const connection = pgp()("postgres://postgres:123456@localhost:5432/app");
         const [accountData] = await connection.query("select * from app.account where account_id = $1", [accountId]);
+        if (!accountData) throw new Error("Account not found");
         const balancesData = await connection.query("select * from app.balance where account_id = $1", [accountId]);
         const balances: Balance[] = [];
         for (const balanceData of balancesData) {
